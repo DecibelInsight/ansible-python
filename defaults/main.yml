@@ -1,0 +1,5 @@
+---
+# defaults file for roles/python
+
+version: 2.7.11
+j: "{{ ansible_processor_vcpus + 1 }}"

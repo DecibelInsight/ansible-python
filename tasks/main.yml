@@ -1,0 +1,49 @@
+---
+# tasks file for roles/python
+
+  - name: apt-get stuff
+    apt:
+      name: '{{ item }}'
+      state: present
+      update_cache: true
+      cache_valid_time: '{{ 24 * 3600 }}'
+    with_items:
+      - make
+      - gcc
+      - libreadline-dev
+      - libbz2-dev
+      - libbz2-dev
+      - libncurses-dev
+      - libssl-dev
+      - libsqlite3-dev
+
+  - name: include vars for version
+    include_vars: '{{ version }}.yml'
+
+  - name: wget python
+    get_url:
+      url: 'https://www.python.org/ftp/python/{{ version }}/Python-{{ version }}.tgz'
+      sha256sum: "{{ sha256 }}"
+      dest: /tmp
+    register: wget
+
+  - name: unarchive stuff
+    unarchive:
+      src: '{{ wget.dest }}'
+      dest: /tmp
+      copy: no
+    register: untar
+
+  - name: configure and make
+    shell: ./configure && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+
+  - name: make install
+    shell: make install -k -j{{ j }} || /bin/true chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+
+  - name: test python version
+    shell: python --version
+    register: python_version
+    failed_when: version not in python_version.stderr
+    changed_when: false
+    tags:
+      - check
