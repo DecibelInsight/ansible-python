@@ -35,13 +35,23 @@
     register: untar
 
   - name: configure and make
-    shell: ./configure && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+    shell: ./configure --prefix={{ python_prefix }} && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+    args:
+      creates: /tmp/Python-{{ version }}/python
+
+  - name: replace known TabIssues
+    replace:
+     dest: '{{ item }}'
+     regexp: '\t'
+     replace: '    '
+    with_items:
+      - '{{ python_prefix }}/lib/python2.7/dist-packages/landscape/lib/md5crypt.py'
 
   - name: make install
-    shell: make install -k -j{{ j }} || /bin/true chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+    shell: make install -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
 
   - name: test python version
-    shell: python --version
+    shell: '{{ python_prefix }}/bin/python --version'
     register: python_version
     failed_when: version not in python_version.stderr
     changed_when: false
