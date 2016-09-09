@@ -6,7 +6,7 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 Vagrant.configure(2) do |config|
-  config.vm.box = "mhristof/ansible-1.9.4"
+  config.vm.box = "boxesio/trusty64-ansible"
   config.vm.network "public_network", bridge: ENV.fetch('VAGRANT_NETWORK_IFACE', 'em1')
   config.vm.provision 'ansible' do |ansible|
       ansible.playbook = "./python.yml"
