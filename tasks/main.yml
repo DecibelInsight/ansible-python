@@ -1,59 +1,14 @@
 ---
 # tasks file for roles/python
 
-  - name: apt-get stuff
-    apt:
-      name: '{{ item }}'
-      state: present
-      update_cache: true
-      cache_valid_time: '{{ 24 * 3600 }}'
-    with_items:
-      - make
-      - gcc
-      - libreadline-dev
-      - libbz2-dev
-      - libbz2-dev
-      - libncurses-dev
-      - libssl-dev
-      - libsqlite3-dev
+  - name: source installation
+    include: install_from_sources.yml
+    when: python_from_sources
 
-  - name: include vars for version
-    include_vars: '{{ version }}.yml'
+  - name: update python version
+    include: install_from_ppa.yml
+    when: python_from_ppa
 
-  - name: wget python
-    get_url:
-      url: 'https://www.python.org/ftp/python/{{ version }}/Python-{{ version }}.tgz'
-      sha256sum: "{{ sha256 }}"
-      dest: /tmp
-    register: wget
-
-  - name: unarchive stuff
-    unarchive:
-      src: '{{ wget.dest }}'
-      dest: /tmp
-      copy: no
-    register: untar
-
-  - name: configure and make
-    shell: ./configure --prefix={{ python_prefix }} && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
-    args:
-      creates: /tmp/Python-{{ version }}/python
-
-  - name: replace known TabIssues
-    replace:
-     dest: '{{ item }}'
-     regexp: '\t'
-     replace: '    '
-    with_items:
-      - '{{ python_prefix }}/lib/python2.7/dist-packages/landscape/lib/md5crypt.py'
-
-  - name: make install
-    shell: make install -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
-
-  - name: test python version
-    shell: '{{ python_prefix }}/bin/python --version'
-    register: python_version
-    failed_when: version not in python_version.stderr
+  - name: verify python version
+    shell: python --version 2>&1 | grep {{ python_version }}
     changed_when: false
-    tags:
-      - check
