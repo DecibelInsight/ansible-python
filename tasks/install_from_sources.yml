@@ -1,0 +1,58 @@
+---
+
+  - name: apt-get stuff
+    apt:
+      name: '{{ item }}'
+      state: present
+      update_cache: true
+      cache_valid_time: '{{ 24 * 3600 }}'
+    with_items:
+      - make
+      - gcc
+      - libreadline-dev
+      - libbz2-dev
+      - libbz2-dev
+      - libncurses-dev
+      - libssl-dev
+      - libsqlite3-dev
+
+  - name: include vars for version
+    include_vars: '{{ python_version }}.yml'
+
+  - name: wget python
+    get_url:
+      url: 'https://www.python.org/ftp/python/{{ python_version }}/Python-{{ python_version }}.tgz'
+      sha256sum: "{{ sha256 }}"
+      dest: /tmp
+    register: wget
+
+  - name: unarchive stuff
+    unarchive:
+      src: '{{ wget.dest }}'
+      dest: /tmp
+      copy: no
+    register: untar
+
+  - name: configure and make
+    shell: ./configure --prefix={{ python_prefix }} && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+    args:
+      creates: /tmp/Python-{{ python_version }}/python
+
+  - name: replace known TabIssues
+    replace:
+     dest: '{{ item }}'
+     regexp: '\t'
+     replace: '    '
+    with_items:
+      - '{{ python_prefix }}/lib/python2.7/dist-packages/landscape/lib/md5crypt.py'
+
+  - name: make install
+    shell: make install -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+
+  - name: test python version
+    shell: '{{ python_prefix }}/bin/python --version'
+    register: check_python_version
+    failed_when: python_version not in check_python_version.stderr
+    changed_when: false
+    tags:
+      - check

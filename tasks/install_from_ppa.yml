@@ -1,0 +1,19 @@
+---
+
+  - name: install ppa
+    apt_repository:
+      repo: '{{ python_ppa }}'
+      state: present
+
+  - debug: var=python_version
+  - name: apt-get python from ppa
+    apt:
+      name: '{{ item }}'
+      state: present
+      cache_valid_time: 36000
+      update_cache: yes
+    with_items:
+      - 'python2.7={{ python_version }}*'
+      - 'python2.7-dev={{ python_version }}*'
+    tags:
+      - apt
