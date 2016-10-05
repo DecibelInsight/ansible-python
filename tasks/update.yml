@@ -1,9 +1,0 @@
----
-
-  - name: install ppa
-    apt_repository:
-      repo: 'ppa:fkrull/deadsnakes-python2.7'
-      state: present
-
-  - name: install python
-    raw: apt-get install -y python2.7 python2.7-dev
