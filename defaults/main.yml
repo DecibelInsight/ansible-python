@@ -5,6 +5,6 @@ python_version: 2.7.12
 j: "{{ ansible_processor_vcpus|default(3) + 1 }}"
 python_prefix: /usr/local
 
-python_from_sources: false
-python_from_ppa: true
+python_from_sources: true
+python_from_ppa: false
 python_ppa: 'ppa:fkrull/deadsnakes-python2.7'
