@@ -34,7 +34,7 @@
     register: untar
 
   - name: configure and make
-    shell: ./configure --prefix={{ python_prefix }} && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
+    shell: ./configure --prefix={{ python_prefix }} --with-ensurepip=install && make -j{{ j }} chdir="{{ untar.src | regex_replace('\.tgz$', '') }}"
     args:
       creates: /tmp/Python-{{ python_version }}/python
 
